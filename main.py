@@ -1,5 +1,6 @@
 import pygame
 import math
+import cmath
 
 pygame.init()
 pygame.display.set_caption("Planet Sim")
@@ -195,18 +196,26 @@ def main():
     mercury = Planet(sun_distance_x + mercury_distance, sun_distance_y, 8, DARK_GREY, 3.30e23)
     mercury.y_vel = -47.4 * 1000
 
-    earth_distance = -1 * Planet.AU
-    vel_earth = math.sqrt(G * sun.mass / earth_distance)
-    earth = Planet(-1 * Planet.AU + sun_distance_x, sun_distance_y, 16, BLUE, 5.9742e24, vel_y=vel_earth)
-    earth.y_vel = 29.783 * 1000
-    earth.x = -1 * Planet.AU
+    earth_distance = 1 * Planet.AU
+    vel_earth = math.sqrt(abs((G * sun.mass) / earth_distance))
+    earth = Planet(earth_distance + sun.x, sun.y, 16, BLUE, 5.9742e24, vel_y=-vel_earth)
+    # earth.y_vel = 29.783 * 1000
+    # earth.x = -1 * Planet.AU
+    # earth.y_vel = vel_earth
 
     #Lembrar de adaptar o código para vel_relativo de cada planeta
-    moon_distance = 0.00257 * Planet.AU
-    moon_relative = math.sqrt(G * earth.mass / moon_distance)
-    moon = Planet(earth.x + moon_distance, earth.y, 4, WHITE, 7.3476e22, vel_y= earth.vel_y+ moon_relative)
+    # moon_distance = 0.0027 * Planet.AU
+    # moon_relative = math.sqrt(abs((G * earth.mass) / moon_distance))
+    # vel_total_moon = earth.y_vel - moon_relative
+    moon = Planet(earth.x, earth.y, 4, WHITE, 7.3476e22, vel_y=0)
 
-    planets = [sun, mercury, earth, moon]
+    moon.orbit_angle = 0
+
+    moon_pixel_dist = 0.00257 * Planet.AU
+
+    moon_rotation_vel = 0.05
+
+    planets = [sun, mercury, earth]
     while run:
 
         clock.tick(60)  # limits FPS to 60
@@ -221,15 +230,25 @@ def main():
             planet.update_position(planets)
             planet.draw(screen)
 
-        moon.atraction(earth)
-        # for moon in moons:
-        #     moon.update_position(moons)
-        #     moon.draw(screen, parent=earth)
-                
-        # fill the screen with a color to wipe away anything from last frame
-        # mercury = Planet(sun_distance_x, sun_distance_y, 10, mercury_mass, "grey")
-    
-        # flip() the display to put your work on screen
+        moon.orbit_angle += moon_rotation_vel
+            
+        moon.x += earth.x + (math.cos(moon.orbit_angle) * moon_pixel_dist) 
+        moon.y += earth.y + (math.sin(moon.orbit_angle) * moon_pixel_dist)
+
+        moon.orbit.append((moon.x, moon.y))
+        if len(moon.orbit) > 50:
+            moon.orbit.pop(0)
+
+        earth_pixel_x = earth.x * earth.SCALE + WIDTH / 2
+        earth_pixel_y = earth.y * earth.SCALE + HEIGHT / 2
+
+        moon_pixel_x = earth_pixel_x + (math.cos(moon.orbit_angle) * 25)
+        moon_pixel_y = earth_pixel_y + (math.sin(moon.orbit_angle) * 25)
+
+        pygame.draw.circle(screen, WHITE, (int(moon_pixel_x), int(moon_pixel_y)), 4)
+
+        moon.draw(screen)
+
         pygame.display.update()
 
    
